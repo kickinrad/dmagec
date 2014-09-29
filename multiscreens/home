@@ -1,0 +1,17 @@
+*Multiscreen Interface~ `<home>~
+
+All sorts of campaign information can be displayed here. To change to
+All sorts of campaign information can be displayed here. To change to
+a different screen, enter the following command: "ms " followed by
+the screen you wish to view. These are the currently available screens:
+
+ `sceneinfo~ <id>       `editscene~ <id>
+ `charinfo~ <id>        `editchar~ <id>
+ `charlist~             `addchar~
+ `scenelist~            `addscene~
+ `log~
+ `help~
+ `find~ <term>
+ `combat~
+ `home~
+ `changescene~ <id>
