@@ -1,9 +1,7 @@
 *Multiscreen Interface~ `<home>~
 
 All sorts of campaign information can be displayed here. To change to
-All sorts of campaign information can be displayed here. To change to
-a different screen, enter the following command: "ms " followed by
-the screen you wish to view. These are the currently available screens:
+a different screen, enter one of the following commands:
 
  `sceneinfo~ <id>       `editscene~ <id>
  `charinfo~ <id>        `editchar~ <id>

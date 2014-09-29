@@ -9,11 +9,11 @@ void convertString(std::string& input)
 {
 	for (int i=0; i<input.length(); i++)
 	{
-		if (input[i] == '*') input.replace(i,1,"\033[4m\033[33m");
-		if (input[i] == '~') input.replace(i,1,"\033[39m\033[24m");		
-		if (input[i] == '`') input.replace(i,1,"\033[37m");
-		if (input[i] == '+') input.replace(i,1,"\033[41m");
-		if (input[i] == '^') input.replace(i,1,"\033[31m\033[52m");
+		if (input[i] == '*') input.replace(i,1,"\033[4m\033[33m"); //orange text w/ underline
+		if (input[i] == '~') input.replace(i,1,"\033[39m\033[24m");	//default text
+		if (input[i] == '`') input.replace(i,1,"\033[37m"); //white text
+		if (input[i] == '+') input.replace(i,1,"\033[41m"); //red highlight
+		if (input[i] == '^') input.replace(i,1,"\033[31m\033[52m"); //red text
 	}
 }
 
@@ -110,9 +110,16 @@ void updatePCs(sqlite3 *db)
 	changeString(2,4,6,71,update);
 }
 
+void alert(std::string str)
+{
+	convertString(str);
+	str.resize(71,' ');
+	std::cout << "\033[39;2H" << str << "\033[41;12H                                                                                       \033[41;12H";
+}
+
 int main()
 {
-	char* clear = "\033[2J\033[1;1H";
+	char* clear = "\033[2J\033[1;1H\033[0m";
 	char *err=0;
 	char *sql;
 	//const char* data = "Callback function called";
@@ -140,7 +147,7 @@ int main()
 	{
 		std::cout << "\033[41;12H                                                                                       \033[41;12H"; //clear command window
 		std::cin >> input; //wait for input
-		std::cout << "\033[39;3H                                                                      "; //clear error window
+		alert("");
 		if (input=="q" || input=="quit")
 		{
 			std::cout << clear << "Sucessfully saved and exited." << std::endl;
@@ -156,33 +163,71 @@ int main()
 		{
 			changeString(2,20,18,71,"*Multiscreen Interface~ `<Character Info>~");
 			int id;
+			alert("^Please enter a character ID!~");
 			std::cin >> id;
-			std::string q = "SELECT * FROM CHARACTERS WHERE ID = ";
-			q.append(std::to_string(id));
-			q += ';';
-			const char *query = q.c_str();
-
-			sqlite3_prepare(db, query, strlen(query), &stmt, &pzTest);
-			id = sqlite3_step(stmt);
-			if (sqlite3_column_int(stmt,0))
+			if (id)
 			{
-				std::cout << "\033[22;2H\033[37mCharacter Name\033[0m: " << sqlite3_column_text(stmt,1);
-				if (sqlite3_column_text(stmt,2))
+				alert("");
+				std::string q = "SELECT * FROM CHARACTERS WHERE ID = ";
+				q.append(std::to_string(id));
+				q += ';';
+				const char *query = q.c_str();
+
+				sqlite3_prepare(db, query, strlen(query), &stmt, &pzTest);
+				id = sqlite3_step(stmt);
+				if (sqlite3_column_int(stmt,0))
 				{
-					std::cout << "\033[23;2H\033[37mPortrayed by\033[0m: " << sqlite3_column_text(stmt,2);
-					std::cout << "\033[24;2H\033[37mExperience Points\033[0m: " << sqlite3_column_int(stmt,5);
+					std::cout << "\033[22;2H\033[37mCharacter Name\033[0m: " << sqlite3_column_text(stmt,1);
+					if (sqlite3_column_text(stmt,2))
+					{
+						std::cout << "\033[23;2H\033[37mPortrayed by\033[0m: " << sqlite3_column_text(stmt,2);
+						std::cout << "\033[24;2H\033[37mExperience Points\033[0m: " << sqlite3_column_int(stmt,5);
+					}
+					else
+					{
+						std::cout << "\033[23;2HNon-Player Character";
+					}
+					std::cout << "\033[26;2H\033[37mHit Points\033[0m: " << sqlite3_column_int(stmt,3) << '/' << sqlite3_column_int(stmt,4);
 				}
 				else
 				{
-					std::cout << "\033[23;2HNon-Player Character";
+					alert("^ID was not recognized! Please try again.~");
+					changeScreen(2,20,18,71,"multiscreens/home");
 				}
-				std::cout << "\033[26;2H\033[37mHit Points\033[0m: " << sqlite3_column_int(stmt,3) << '/' << sqlite3_column_int(stmt,4);
 			}
-			else std::cout << "\033[39;3H\033[31mID was not recognized! Please try again.                              \033[0m\033[41;12H";
+			else alert("^There was an error with the ID you entered.~");
+		}
+		else if (input =="charlist")
+		{
+			const char *query = "SELECT Count(*) FROM CHARACTERS;";
+			sqlite3_prepare(db, query, strlen(query), &stmt, &pzTest);
+			int id = sqlite3_step(stmt);
+
+			if (id)
+			{
+				changeString(2,20,18,71,"*Multiscreen Interface~ `<Character List>~");
+				alert("`Press enter to advance page. · = Player Character~");
+				std::cout << "\033[22;2H\033[4m\033[33mID\033[24m    \033[4mName\033[39m\033[24m";
+				int numChars = sqlite3_column_int(stmt,0);
+
+				const char *query2 = "SELECT * FROM CHARACTERS ORDER BY ID ASC;";
+				sqlite3_prepare(db, query2, strlen(query2), &stmt, &pzTest);
+				for (int i=0; i<numChars; i++)
+				{
+					sqlite3_step(stmt);
+					if (sqlite3_column_text(stmt,2)) std::cout << "\033[" << 23+i << ";7H·";
+					std::cout << "\033[" << 23+i << ";2H" << sqlite3_column_int(stmt,0) << "\033[" << 23+i << ";8H" << sqlite3_column_text(stmt,1);
+				}
+			}
+			else
+			{
+				alert("^Something went wrong. No characters in DB?~");
+				changeScreen(2,20,18,71,"multiscreens/home");
+			}
 		}
 		else
 		{
-			std::cout << "\033[39;3H\033[31mCommand was not recognized! Please try again.                         \033[0m\033[41;12H";
+			alert("^Command was not recognized! Please try again.~");
 		}
 	}
 	
