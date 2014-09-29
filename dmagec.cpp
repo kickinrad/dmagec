@@ -90,7 +90,7 @@ void updatePCs(sqlite3 *db)
 			text = std::to_string(sqlite3_column_int(stmt,0));
 			for (int i=0; i<4-text.length(); i++) update += '0'; //leading zeroes
 			update.append(text);
-			for (int i=0; i<4-text.length(); i++) update += ' ';
+			for (int i=0; i<3; i++) update += ' ';
 
 			//xp
 			text = std::to_string(sqlite3_column_int(stmt,5));
@@ -140,7 +140,7 @@ int main()
 
 	sqlite3 *db;
 	int rc;
-	rc = sqlite3_open("mageApp.db", &db);
+	rc = sqlite3_open("dmagec.db", &db);
 	updatePCs(db);
 	//end db stuff
 	while (input!="q")
@@ -222,6 +222,64 @@ int main()
 			else
 			{
 				alert("^Something went wrong. No characters in DB?~");
+				changeScreen(2,20,18,71,"multiscreens/home");
+			}
+		}
+		else if (input == "addchar")
+		{
+			const char *query = "SELECT * FROM CHARACTERS ORDER BY ID DESC;";
+			sqlite3_prepare(db, query, strlen(query), &stmt, &pzTest);
+			int id = sqlite3_step(stmt);
+			if (id) id = 1 + sqlite3_column_int(stmt,0);
+			else id = 1;
+			alert("Is this a player character? (y/n)");
+			char c_input;
+			int i_input;
+			std::string s_input;
+			std::cin >> c_input;
+			if (c_input == 'y') //PC
+			{
+				std::string q = "INSERT INTO CHARACTERS (ID,NAME,REALNAME,CURHP,TOTALHP,XP) VALUES(";
+				q += std::to_string(id);
+				alert("Enter the character's name.");
+				std::cin >> s_input;
+				q += ",'" + s_input;
+				alert("Enter the player's name.");
+				std::cin >> s_input;
+				q += "','" + s_input;
+				alert("Enter the character's hit points.");
+				std::cin >> i_input;
+				q += "'," + std::to_string(i_input) + ',' + std::to_string(i_input) + ",0);";
+				//std::cout << "\033[43;2H" << q;
+				const char *query2 = q.c_str();
+				sqlite3_prepare(db, query2, strlen(query2), &stmt, &pzTest);
+				sqlite3_step(stmt);
+
+				alert("Character added!");
+				updatePCs(db);
+				changeScreen(2,20,18,71,"multiscreens/home");
+			}
+			else if (c_input == 'n') //NPC
+			{
+				std::string q = "INSERT INTO CHARACTERS (ID,NAME,CURHP,TOTALHP) VALUES(";
+				q += std::to_string(id);
+				alert("Enter the character's name.");
+				std::cin >> s_input;
+				q += ",'" + s_input;
+				alert("Enter the character's hit points.");
+				std::cin >> i_input;
+				q += "'," + std::to_string(i_input) + ',' + std::to_string(i_input) + ");";
+				//std::cout << "\033[43;2H" << q;
+				const char *query2 = q.c_str();
+				sqlite3_prepare(db, query2, strlen(query2), &stmt, &pzTest);
+				int err2 = sqlite3_step(stmt);
+
+				alert("Character added!");
+				changeScreen(2,20,18,71,"multiscreens/home");
+			}
+			else
+			{
+				alert("^Error with input.?~");
 				changeScreen(2,20,18,71,"multiscreens/home");
 			}
 		}
