@@ -11,12 +11,13 @@ class multiscreen
 {
 public:
     multiscreen(sqlite3*);
-    std::string act(std::string,int argc = 0,std::string* = NULL);
+    std::string act(std::string, std::string* = NULL, std::string* alert_in = NULL);
     std::string pclist();
 private:
     sqlite3 *db;
     sqlite3_stmt *stmt;
     const char *pz;
+    std::string *alert;
     std::string fromFile(std::string);
     std::string charinfo(std::string);
     std::string charlist();

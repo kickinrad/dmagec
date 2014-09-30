@@ -44,7 +44,7 @@ int main()
     rc = sqlite3_open("dmagec.db", &db);
     multiscreen ms(db);
     //updatePCs(db);
-    placeString(ms.pclist(), 2, 4, 71, 5);
+    placeString(ms.pclist(), 2, 4, 71, 6);
 
     //**************************INITIALIZE CONSOLE VIEWPORT**************************
     //std::string input[6]; //input[0] is the full console input. any additional arguments are put into the following indices.
@@ -59,8 +59,8 @@ int main()
         convertString(consoleLayoutFileLine[i]);
     }
     for (int i=0; i<42; i++) std::cout << consoleLayoutFileLine[i] << std::endl;
-    
-    placeString(ms.pclist(), 2, 4, 71, 5);
+
+    placeString(ms.pclist(), 2, 4, 71, 6);
     placeString(ms.act("home"), 2, 20, 71, 18);
 
     //**************************COMMAND LINE LOOP**************************
@@ -68,7 +68,7 @@ int main()
     {
         std::string input[6]; //input[0] is the full console input. any additional arguments are put into the following indices.
         std::cout << "\033[41;12H"; //place cursor in command line
-        //std::cin >> input; //wait for input via command line
+        std::string alert_string = "";
 
         std::cin.clear();
         std::getline(std::cin,input[0]);
@@ -88,15 +88,16 @@ int main()
         }
         //multiscreen
         else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist") placeString(ms.act(input[1]), 2, 20, 71, 18);
-        else if (input[1]=="charinfo") placeString(ms.act(input[1],1,&input[2]), 2, 20, 71, 18);
-        else if (input[1]== "addpc") ms.act(input[1],3,input+2);
-        else if (input[1]== "addnpc") ms.act(input[1],2,input+2);
+        else if (input[1]=="charinfo") placeString(ms.act(input[1],&input[2],&alert_string), 2, 20, 71, 18);
+        else if (input[1]== "addpc") ms.act(input[1],input+2);
+        else if (input[1]== "addnpc") ms.act(input[1],input+2);
         else
         {
             alert("^Command was not recognized! Please try again.~");
         }
 
-        //std::cout << "\033[43;2H" << input[2] << ' ' << input[3] << ' ' << input[4];
+        alert(alert_string);
+        //std::cout << "\033[43;2H" << alert_string;
     }
     
 }

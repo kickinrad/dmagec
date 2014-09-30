@@ -8,9 +8,11 @@ multiscreen::multiscreen(sqlite3* given_db)
 {
     db = given_db;
 }
-std::string multiscreen::act(std::string in, int argc, std::string* argv)
+std::string multiscreen::act(std::string in, std::string* argv, std::string* alert_in)
 {
     int c;
+    alert = alert_in;
+
     if (in=="home" || in == "help") c = 0;
     else if (in=="charinfo") c = 1;
     else if (in=="charlist") c = 2;
@@ -40,50 +42,56 @@ std::string multiscreen::act(std::string in, int argc, std::string* argv)
 }
 std::string multiscreen::pclist()
 {
-    std::string** chars;
-    std::string out = "";
+    std::string **chars, out = "";
     int numChars = getChars(chars);
     for (int i=0; i<numChars; i++)
     {
         if (chars[i][2] != "") //PC
         {
-            out += chars[i][1] + "   " += chars[i][2] + "   " + chars[i][0] + "  " + chars[i][5] + "  " + chars[i][3] + '/' + chars[i][4] + " \n";
+            //out += chars[i][1] + "   " += chars[i][2] + "   " + chars[i][0] + "  " + chars[i][5] + "  " + chars[i][3] + '/' + chars[i][4] + " \n";
+            out += chars[i][1];
+            for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
+            out += chars[i][2];
+            for (int w=0; w<20-chars[i][2].length(); w++) out += ' ';
+            out += chars[i][3];
+            for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
+            out += chars[i][0];
+            for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
+            out += chars[i][3] + '/' + chars[i][4] + " \n";
         }
     }
     return out;
 }
 std::string multiscreen::fromFile(std::string in)
 {
-    std::string out = "";
-    std::string line;
-
+    std::string out = "", line;
     std::ifstream file;
     
     in = "multiscreens/" + in;
     file.open(in);
     std::getline(file,out,'\0');
+    file.close();
     return out;
 }
 std::string multiscreen::charinfo(std::string id)
 {
-    std::string out = "*Multiscreen Interface~ `<Character Info>~ \n\n";
-    std::string** chars;
+    std::string **chars, out = "*Multiscreen Interface~ `<Character Info>~ \n  \n";
     int numChars = getChars(chars);
     for (int i=0; i<numChars; i++)
     {
         if (id == chars[i][0])
         {
-            out += "Character Name: " + chars[i][1] + " \n";
+            out += "Character Name:    `" + chars[i][1] + "~ \n";
             if(chars[i][2] != "") //PC
             {
-                out += "Portrayed by: " + chars[i][2] + " \n";
-                out += "Experience Points: " + chars[i][5] + " \n";
+                out += "Portrayed by:      `" + chars[i][2] + "~ \n";
+                out += "Experience Points: `" + chars[i][5] + "~ \n";
             }
-            out += "Hit Points: " + chars[i][3] + '/' + chars[i][4] + ' ';
+            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~ ";
             return out;
         }
     }
-    out += "Not found or something. ";
+    *alert = "^No characters matching that ID were found!~";
     return out;
 }
 
@@ -115,24 +123,44 @@ int multiscreen::getChars(std::string**& chars)
             chars[i][2] = std::string( reinterpret_cast< const char* >(sqlite3_column_text(stmt,2)));//real name
         }
     }
+    if (!count) *alert = "^No characters were found!~";
 }
 std::string multiscreen::charlist()
 {
-    std::string out = "*Multiscreen Interface~ `<Character List>~\n      \n*Character~                   *Real Name~           *ID~     *XP~      *HP~ \n\n\n"; //spaces a workaround. fix later
-
-    std::string** chars;
+    std::string **chars, out = "*Multiscreen Interface~ `<Character List>~\n      \n*Character~                   *Real Name~           *ID~     *XP~      *HP~ \n  \n"; //spaces a workaround. fix later
     int numChars = getChars(chars);
     
-    for (int i=0; i<numChars; i++)
+    /*for (int i=0; i<numChars; i++)
     {
         out += chars[i][0] + "     " + chars[i][1] + "     " + chars[i][2] + "     " + chars[i][3] + "     " + chars[i][4] + "     " + chars[i][5] + '\n';
+    }*/
+    for (int i=0; i<numChars; i++)
+    {
+        if (chars[i][2] != "") //PC
+        {
+            out += chars[i][1];
+            for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
+            out += chars[i][2];
+            for (int w=0; w<20-chars[i][2].length(); w++) out += ' ';
+            out += chars[i][0];
+            for (int w=0; w<7-chars[i][0].length(); w++) out += ' ';
+            out += chars[i][5];
+            for (int w=0; w<8-chars[i][5].length(); w++) out += ' ';
+        }
+        else //NPC
+        {
+            out += chars[i][1];
+            for (int w=0; w<48-chars[i][1].length(); w++) out += ' ';
+            out += chars[i][0];
+            for (int w=0; w<15-chars[i][0].length(); w++) out += ' ';
+        }
+        out += chars[i][3] + '/' + chars[i][4] + " \n";
     }
     return out;
 }
 void multiscreen::addchar(bool pc, std::string* argv)
 {
-    std::string** chars;
-    std::string q;
+    std::string **chars, q;
     int numChars = getChars(chars);
     int id = std::stoi(chars[numChars-1][0])+1;
     if (pc)
