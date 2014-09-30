@@ -2,7 +2,6 @@
 #include <sstream>
 #include <fstream>
 #include <string.h>
-#include <iostream> //for debugging, remove later
 
 multiscreen::multiscreen(sqlite3* given_db)
 {
@@ -18,6 +17,8 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
     else if (in=="charlist") c = 2;
     else if (in=="addpc") c = 3;
     else if (in=="addnpc") c = 4;
+    else if (in=="scenelist") c = 5;
+    else if (in=="setscene") c = 6;
 
     switch(c)
     {
@@ -37,6 +38,12 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
         case 4: //addnpc
             addchar(false, argv);
             return fromFile("home");
+            break;
+        case 5:
+            return scenelist();
+            break;
+        case 6:
+            return setscene(argv[0]);
             break;
     }
 }
@@ -174,6 +181,61 @@ void multiscreen::addchar(bool pc, std::string* argv)
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
+}
+
+int multiscreen::getScenes(std::string**& chars)
+{
+    const char *query = "SELECT Count(*) FROM SCENES;";
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    int count = sqlite3_step(stmt);
+    if (!count) return 0;
+    count = sqlite3_column_int(stmt,0);
+
+    chars = new std::string*[count];
+
+    const char *query2 = "SELECT * FROM SCENES ORDER BY ID ASC; ";
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+
+    for (int i=0; i<count; i++)
+    {
+        chars[i] = new std::string[2];
+        sqlite3_step(stmt);
+        chars[i][0] = std::to_string(sqlite3_column_int(stmt,0));//id
+        chars[i][1] = std::string( reinterpret_cast< const char* >(sqlite3_column_text(stmt,1)));//name
+    }
+    if (!count) *alert = "^No scenes were found!~";
+}
+std::string multiscreen::scenelist()
+{
+    std::string **scenes, out = "*Multiscreen Interface~ `<Scene List>~\n      \n*ID~      *Title~     \n  \n"; //spaces a workaround. fix later
+    int numScenes = getScenes(scenes);
+    for (int i=0; i<numScenes; i++)
+    {
+        out += scenes[i][0];
+        for (int w=0; w<8-scenes[i][0].length(); w++) out += ' ';
+        out += scenes[i][1] + " \n";
+    }
+    return out;
+}
+
+std::string multiscreen::setscene(std::string id)
+{
+    std::string **scenes, out = "";
+    int numScenes = getScenes(scenes);
+    for (int i=0; i<numScenes; i++)
+    {
+        if (id == scenes[i][0])
+        {
+            currentScene = std::stoi(id);
+            out += "`Scene: " + scenes[i][1] + "~";
+            for (int w=0; w<57-scenes[i][1].length(); w++) out += ' ';
+            out += "`ID: " + scenes[i][0] + "~ \n";
+            return out;
+        }
+    }
+    *alert = "^No scene matching that ID was found!~";
+    if (numScenes) setscene("1");
+    else return "";
 }
 
 void convertString(std::string& input)

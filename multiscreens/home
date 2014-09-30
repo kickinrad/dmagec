@@ -12,6 +12,6 @@ a different screen, enter one of the following commands:
  `find~ <term>
  `combat~
  `home~
- `changescene~ <id>
+ `setscene~ <id>
 
 

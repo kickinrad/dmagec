@@ -68,7 +68,10 @@ int main()
     {
         std::string input[6]; //input[0] is the full console input. any additional arguments are put into the following indices.
         std::cout << "\033[41;12H"; //place cursor in command line
-        std::string alert_string = "";
+
+        std::string alert_string = "1";
+        //placeString(ms.act("setscene", &alert_string), 3, 11, 70, 1); //initialization not working, fix
+        alert_string = "";
 
         std::cin.clear();
         std::getline(std::cin,input[0]);
@@ -87,17 +90,17 @@ int main()
             return 0;
         }
         //multiscreen
-        else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist") placeString(ms.act(input[1]), 2, 20, 71, 18);
+        else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist" || input[1]=="scenelist") placeString(ms.act(input[1]), 2, 20, 71, 18);
         else if (input[1]=="charinfo") placeString(ms.act(input[1],&input[2],&alert_string), 2, 20, 71, 18);
-        else if (input[1]== "addpc") ms.act(input[1],input+2);
-        else if (input[1]== "addnpc") ms.act(input[1],input+2);
+        else if (input[1]=="addpc") ms.act(input[1],input+2);
+        else if (input[1]=="addnpc") ms.act(input[1],input+2);
+        else if (input[1]=="setscene") placeString(ms.act(input[1],&input[2],&alert_string), 3, 11, 70, 1);
         else
         {
             alert("^Command was not recognized! Please try again.~");
         }
 
         alert(alert_string);
-        //std::cout << "\033[43;2H" << alert_string;
     }
     
 }

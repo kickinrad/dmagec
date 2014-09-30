@@ -11,7 +11,7 @@ class multiscreen
 {
 public:
     multiscreen(sqlite3*);
-    std::string act(std::string, std::string* = NULL, std::string* alert_in = NULL);
+    std::string act(std::string,std::string* =NULL,std::string* =NULL);
     std::string pclist();
 private:
     sqlite3 *db;
@@ -23,6 +23,11 @@ private:
     std::string charlist();
     void addchar(bool,std::string*);
     int getChars(std::string**&); //returns number of characters
+
+    int currentScene;
+    int getScenes(std::string**&); //returns number of scenes
+    std::string setscene(std::string);
+    std::string scenelist();
 };
 
 #endif
