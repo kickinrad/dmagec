@@ -5,11 +5,13 @@ a different screen, enter one of the following commands:
 
  `sceneinfo~ <id>       `editscene~ <id>
  `charinfo~ <id>        `editchar~ <id>
- `charlist~             `addchar~
- `scenelist~            `addscene~
- `log~
+ `charlist~             `addpc~ <name> <realname> <hp>
+ `scenelist~            `addnpc~ <name> <hp>
+ `log~                  `addscene~
  `help~
  `find~ <term>
  `combat~
  `home~
  `changescene~ <id>
+
+
