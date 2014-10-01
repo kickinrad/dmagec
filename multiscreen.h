@@ -23,11 +23,14 @@ private:
     std::string charlist();
     void addchar(bool,std::string*);
     int getChars(std::string**&); //returns number of characters
+    void editchar(std::string*);
 
     int currentScene;
     int getScenes(std::string**&); //returns number of scenes
     std::string setscene(std::string);
     std::string scenelist();
+    std::string sceneinfo(std::string);
+    void editscene(std::string*);
 };
 
 #endif

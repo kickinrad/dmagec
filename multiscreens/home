@@ -3,15 +3,11 @@
 All sorts of campaign information can be displayed here. To change to
 a different screen, enter one of the following commands:
 
- `sceneinfo~ <id>       `editscene~ <id>
- `charinfo~ <id>        `editchar~ <id>
- `charlist~             `addpc~ <name> <realname> <hp>
- `scenelist~            `addnpc~ <name> <hp>
- `log~                  `addscene~
- `help~
- `find~ <term>
- `combat~
- `home~
- `setscene~ <id>
-
-
+ `home~                             `help~
+ `charinfo~ <id>                    `sceneinfo~ <id>
+ `charlist~                         `scenelist~
+ `addnpc~ <name> <hp>               `addpc~ <name> <realname> <hp>
+ `setscene~ <id>                    `addscene~ <name>
+ `give~ <id> <name>                 `remove~ <id> <item>
+ `damage~ <int> <src_id> <tar_id>   `heal~ <int> <src_id> <tar_id> 
+ `editchar~ <id> <column> <update>  `editscene~ <id> <column> <update>

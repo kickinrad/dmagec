@@ -60,14 +60,14 @@ int main()
         std::string input[6]; //input[0] is the full console input. any additional arguments are put into the following indices.
         std::cout << "\033[41;12H"; //place cursor in command line
 
-        std::string alert_string; //for alerts returned from multiscreen::act()
+        std::string alert_string = ""; //for alerts returned from multiscreen::act()
         std::getline(std::cin,input[0]); //get input from user, place raw input (terminated by newline) into input[0]
 
         std::stringstream stream; //stringstream for parsing user input
         stream.str(input[0]); //intialize stream with raw user input
         int counter = 0;
         while(std::getline(stream,input[++counter],' ')); //go through each clause of input, seperated by ' 's, and put each into input array.
-        alert(""); //clear the alert window
+        alert(alert_string); //clear the alert window
         
         if (input[1]=="q" || input[1]=="quit")
         {
@@ -77,17 +77,17 @@ int main()
             return 0;
         }
         else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist" || input[1]=="scenelist") placeString(ms.act(input[1]), 2, 20, 71, 18);
-        else if (input[1]=="charinfo") placeString(ms.act(input[1],&input[2],&alert_string), 2, 20, 71, 18);
-        else if (input[1]=="addpc") ms.act(input[1],input+2);
-        else if (input[1]=="addnpc") ms.act(input[1],input+2);
+        else if (input[1]=="charinfo" || input[1]=="sceneinfo") placeString(ms.act(input[1],&input[2],&alert_string), 2, 20, 71, 18);
+        else if (input[1]=="addpc" || input[1]=="addnpc") ms.act(input[1],input+2);
         else if (input[1]=="setscene") placeString(ms.act(input[1],&input[2],&alert_string), 3, 11, 70, 1);
+        else if (input[1]=="editchar" || input[1]=="editscene") ms.act(input[1],&input[2]);
         else
         {
             alert("^Command was not recognized! Please try again.~");
             continue; //loop around, so we don't hit that alert below that's used by above database::act() statements
         }
-
-        alert(alert_string);
+        if (alert_string == "") alert("`Enter 'home' to return to the home screen.~");
+        else alert(alert_string);
     }
     
 }

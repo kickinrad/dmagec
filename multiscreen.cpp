@@ -3,10 +3,13 @@
 #include <fstream>
 #include <string.h>
 
+//**************************CONSTRUCTOR**************************
 multiscreen::multiscreen(sqlite3* given_db)
 {
     db = given_db;
 }
+
+//**************************GENERAL MULTISCREEN FUNCTIONS**************************
 std::string multiscreen::act(std::string in, std::string* argv, std::string* alert_in)
 {
     int c;
@@ -19,6 +22,9 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
     else if (in=="addnpc") c = 4;
     else if (in=="scenelist") c = 5;
     else if (in=="setscene") c = 6;
+    else if (in=="sceneinfo") c = 7;
+    else if (in=="editchar") c = 8;
+    else if (in=="editscene") c = 9;
 
     switch(c)
     {
@@ -45,28 +51,19 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
         case 6:
             return setscene(argv[0]);
             break;
+        case 7:
+            sceneinfo(argv[0]);
+            return fromFile("home");
+            break;
+        case 8:
+            editchar(argv);
+            return fromFile("home");
+            break;
+        case 9:
+            editscene(argv);
+            return fromFile("home");
+            break;
     }
-}
-std::string multiscreen::pclist()
-{
-    std::string **chars, out = "";
-    int numChars = getChars(chars);
-    for (int i=0; i<numChars; i++)
-    {
-        if (chars[i][2] != "") //PC
-        {
-            out += chars[i][1];
-            for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
-            out += chars[i][2];
-            for (int w=0; w<20-chars[i][2].length(); w++) out += ' ';
-            out += chars[i][3];
-            for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
-            out += chars[i][0];
-            for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
-            out += chars[i][3] + '/' + chars[i][4] + '\n';
-        }
-    }
-    return out;
 }
 std::string multiscreen::fromFile(std::string in)
 {
@@ -79,28 +76,8 @@ std::string multiscreen::fromFile(std::string in)
     file.close();
     return out;
 }
-std::string multiscreen::charinfo(std::string id)
-{
-    std::string **chars, out = "*Multiscreen Interface~ `<Character Info>~\n  \n";
-    int numChars = getChars(chars);
-    for (int i=0; i<numChars; i++)
-    {
-        if (id == chars[i][0])
-        {
-            out += "Character Name:    `" + chars[i][1] + "~\n";
-            if(chars[i][2] != "") //PC
-            {
-                out += "Portrayed by:      `" + chars[i][2] + "~\n";
-                out += "Experience Points: `" + chars[i][5] + "~\n";
-            }
-            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~";
-            return out;
-        }
-    }
-    *alert = "^No characters matching that ID were found!~";
-    return out;
-}
 
+//**************************CHARACTER FUNCTIONS**************************
 int multiscreen::getChars(std::string**& chars)
 {
     const char *query = "SELECT Count(*) FROM CHARACTERS;";
@@ -177,7 +154,57 @@ void multiscreen::addchar(bool pc, std::string* argv)
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
 }
+std::string multiscreen::charinfo(std::string id)
+{
+    std::string **chars, out = "*Multiscreen Interface~ `<Character Info>~\n  \n";
+    int numChars = getChars(chars);
+    for (int i=0; i<numChars; i++)
+    {
+        if (id == chars[i][0])
+        {
+            out += "Character Name:    `" + chars[i][1] + "~\n";
+            if(chars[i][2] != "") //PC
+            {
+                out += "Portrayed by:      `" + chars[i][2] + "~\n";
+                out += "Experience Points: `" + chars[i][5] + "~\n";
+            }
+            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~";
+            return out;
+        }
+    }
+    *alert = "^No characters matching that ID were found!~";
+    return out;
+}
+std::string multiscreen::pclist()
+{
+    std::string **chars, out = "";
+    int numChars = getChars(chars);
+    for (int i=0; i<numChars; i++)
+    {
+        if (chars[i][2] != "") //PC
+        {
+            out += chars[i][1];
+            for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
+            out += chars[i][2];
+            for (int w=0; w<20-chars[i][2].length(); w++) out += ' ';
+            out += chars[i][3];
+            for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
+            out += chars[i][0];
+            for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
+            out += chars[i][3] + '/' + chars[i][4] + '\n';
+        }
+    }
+    return out;
+}
+void multiscreen::editchar(std::string* argv)
+{
+    std::string q = "UPDATE CHARACTERS SET " + argv[1] + " = " + '\'' + argv[2] + "\' WHERE ID = " + argv[0] + ';';
+    const char *query = q.c_str();
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    sqlite3_step(stmt);
+}
 
+//**************************SCENE FUNCTIONS**************************
 int multiscreen::getScenes(std::string**& chars)
 {
     const char *query = "SELECT Count(*) FROM SCENES;";
@@ -212,7 +239,6 @@ std::string multiscreen::scenelist()
     }
     return out;
 }
-
 std::string multiscreen::setscene(std::string id)
 {
     std::string **scenes, out = "";
@@ -232,7 +258,31 @@ std::string multiscreen::setscene(std::string id)
     if (numScenes) setscene("1");
     else return "";
 }
+std::string multiscreen::sceneinfo(std::string id)
+{
+    std::string **scenes, out = "*Multiscreen Interface~ `<Scene Info>~\n  \n";
+    int numScenes = getScenes(scenes);
+    for (int i=0; i<numScenes; i++)
+    {
+        if (id == scenes[i][0])
+        {
+            out += "ID:              `" + scenes[i][0] + "~\n";
+            out += "Scene Name:      `" + scenes[i][1] + "~\n";
+            return out;
+        }
+    }
+    *alert = "^No scenes matching that ID were found!~";
+    return out;
+}
+void multiscreen::editscene(std::string* argv)
+{
+    std::string q = "UPDATE SCENES SET " + argv[1] + " = " + '\'' + argv[2] + "\' WHERE ID = " + argv[0] + ';';
+    const char *query = q.c_str();
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    sqlite3_step(stmt);
+}
 
+//**************************STRING HELPER FUNCTIONS**************************
 void convertString(std::string& input)
 {
     for (int i=0; i<input.length(); i++)

@@ -1,6 +1,4 @@
 #dmagec
-======
-
 A C++ console application for managing a tabletop role-playing game.
 
 ###database tables
@@ -9,10 +7,10 @@ A C++ console application for managing a tabletop role-playing game.
     SCENES(ID,NAME)
 
 ###stuff to do
-1. implement the rest of console functions not reliant on more database tables
-    * easy
+1. ~~implement the rest of console functions not reliant on more database tables~~
+    * ~~easy~~
         * `sceneinfo`
-    * a little harder
+    * ~~a little harder~~
         * `editscene`
         * `editchar`
 
@@ -29,3 +27,4 @@ A C++ console application for managing a tabletop role-playing game.
 
 * when I have time
     * fix console input to take strings between quotation marks
+    * add safeguards for sql queries
