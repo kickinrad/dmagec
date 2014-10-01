@@ -71,12 +71,14 @@ std::string multiscreen::pclist()
 }
 std::string multiscreen::fromFile(std::string in)
 {
-    std::string out = "", line;
+    std::string out = "";//, line;
     std::ifstream file;
     
     in = "multiscreens/" + in;
     file.open(in);
     std::getline(file,out,'\0');
+    //let's try this...
+    //while(std::getline(file,line)) out += line + '\n';
     file.close();
     return out;
 }
@@ -244,7 +246,7 @@ void convertString(std::string& input)
     {
         if (input[i] == '*') input.replace(i,1,"\033[4m\033[33m"); //orange text w/ underline
         if (input[i] == '~') input.replace(i,1,"\033[39m\033[24m"); //default text
-        if (input[i] == '`') input.replace(i,1,"\033[37m"); //white text
+        if (input[i] == '`') input.replace(i,1,"\033[35m"); //white text
         if (input[i] == '+') input.replace(i,1,"\033[41m"); //red highlight
         if (input[i] == '^') input.replace(i,1,"\033[31m\033[52m"); //red text
     }
@@ -252,6 +254,6 @@ void convertString(std::string& input)
 
 int nf_len(std::string input)
 {
-    for (int i=0; i<input.length(); i++) if (input[i] == '*' || input[i] == '~' || input[i] == '`' || input[i] == '+' || input[i] == '^') input.erase(i--,1); //orange text w/ underline
-    return input.length()-1;
+    for (int i=0; i<input.length(); i++) if (input[i] == '*' || input[i] == '~' || input[i] == '`' || input[i] == '+' || input[i] == '^') input.erase(i--,1);
+    return input.length();
 }
