@@ -55,7 +55,6 @@ std::string multiscreen::pclist()
     {
         if (chars[i][2] != "") //PC
         {
-            //out += chars[i][1] + "   " += chars[i][2] + "   " + chars[i][0] + "  " + chars[i][5] + "  " + chars[i][3] + '/' + chars[i][4] + " \n";
             out += chars[i][1];
             for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
             out += chars[i][2];
@@ -64,21 +63,19 @@ std::string multiscreen::pclist()
             for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
             out += chars[i][0];
             for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
-            out += chars[i][3] + '/' + chars[i][4] + " \n";
+            out += chars[i][3] + '/' + chars[i][4];
         }
     }
     return out;
 }
 std::string multiscreen::fromFile(std::string in)
 {
-    std::string out = "";//, line;
+    std::string out = "";
     std::ifstream file;
     
     in = "multiscreens/" + in;
     file.open(in);
     std::getline(file,out,'\0');
-    //let's try this...
-    //while(std::getline(file,line)) out += line + '\n';
     file.close();
     return out;
 }
@@ -90,13 +87,13 @@ std::string multiscreen::charinfo(std::string id)
     {
         if (id == chars[i][0])
         {
-            out += "Character Name:    `" + chars[i][1] + "~ \n";
+            out += "Character Name:    `" + chars[i][1] + "~\n";
             if(chars[i][2] != "") //PC
             {
-                out += "Portrayed by:      `" + chars[i][2] + "~ \n";
-                out += "Experience Points: `" + chars[i][5] + "~ \n";
+                out += "Portrayed by:      `" + chars[i][2] + "~\n";
+                out += "Experience Points: `" + chars[i][5] + "~\n";
             }
-            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~ ";
+            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~";
             return out;
         }
     }
@@ -114,7 +111,7 @@ int multiscreen::getChars(std::string**& chars)
 
     chars = new std::string*[count];
 
-    const char *query2 = "SELECT * FROM CHARACTERS ORDER BY ID ASC; ";
+    const char *query2 = "SELECT * FROM CHARACTERS ORDER BY ID ASC;";
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
 
     for (int i=0; i<count; i++)
@@ -136,7 +133,7 @@ int multiscreen::getChars(std::string**& chars)
 }
 std::string multiscreen::charlist()
 {
-    std::string **chars, out = "*Multiscreen Interface~ `<Character List>~\n      \n*Character~                   *Real Name~           *ID~     *XP~      *HP~ \n  \n"; //spaces a workaround. fix later
+    std::string **chars, out = "*Multiscreen Interface~ `<Character List>~\n      \n*Character~                   *Real Name~           *ID~     *XP~      *HP~\n\n"; //spaces a workaround. fix later
     int numChars = getChars(chars);
     
     /*for (int i=0; i<numChars; i++)
@@ -195,7 +192,7 @@ int multiscreen::getScenes(std::string**& chars)
 
     chars = new std::string*[count];
 
-    const char *query2 = "SELECT * FROM SCENES ORDER BY ID ASC; ";
+    const char *query2 = "SELECT * FROM SCENES ORDER BY ID ASC;";
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
 
     for (int i=0; i<count; i++)
@@ -209,7 +206,7 @@ int multiscreen::getScenes(std::string**& chars)
 }
 std::string multiscreen::scenelist()
 {
-    std::string **scenes, out = "*Multiscreen Interface~ `<Scene List>~\n      \n*ID~      *Title~     \n  \n"; //spaces a workaround. fix later
+    std::string **scenes, out = "*Multiscreen Interface~ `<Scene List>~\n      \n*ID~      *Title~     \n\n"; //spaces a workaround. fix later
     int numScenes = getScenes(scenes);
     for (int i=0; i<numScenes; i++)
     {
