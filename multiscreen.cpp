@@ -246,7 +246,7 @@ void convertString(std::string& input)
     {
         if (input[i] == '*') input.replace(i,1,"\033[4m\033[33m"); //orange text w/ underline
         if (input[i] == '~') input.replace(i,1,"\033[39m\033[24m"); //default text
-        if (input[i] == '`') input.replace(i,1,"\033[35m"); //white text
+        if (input[i] == '`') input.replace(i,1,"\033[37m"); //white text
         if (input[i] == '+') input.replace(i,1,"\033[41m"); //red highlight
         if (input[i] == '^') input.replace(i,1,"\033[31m\033[52m"); //red text
     }

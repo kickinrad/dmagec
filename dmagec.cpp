@@ -19,13 +19,13 @@ void placeString(std::string in, int x, int y, int w, int h) //place given strin
     stream.str(in);
     for (int row=0; row<h; row++)
     {
-        if (std::getline(stream, in,'\n') && in[0]!=13)
+        if (std::getline(stream, in,'\n') && in[0]!=13) //13 == carriage return
         {
             int len = nf_len(in);
             convertString(in);
             std::cout << "\033[" << y+row << ';' << x << 'H' << in;
-            std::cout << "\033[" << y+row << ";" << x+len << 'H';
-            for(int ws=len; ws<w; ws++) std::cout << ' ';
+            std::cout << "\033[" << y+row << ";" << x+len-1 << 'H';
+            for(int ws=0; ws<w-len; ws++) std::cout << ' '; //bugged
         }
         else
         {
@@ -44,14 +44,9 @@ int main()
 
     //**************************INITIALIZE CONSOLE VIEWPORT**************************
     std::ifstream consoleLayoutFile("consoleLayout.formatted");
-    std::string consoleLayoutFileLine[42];
-    std::cout << "\033[2J\033[1;1H\033[0m";
-    for (int i=0; i<42; i++)
-    {
-        std::getline(consoleLayoutFile, consoleLayoutFileLine[i], '\n');
-        convertString(consoleLayoutFileLine[i]);
-    }
-    for (int i=0; i<42; i++) std::cout << consoleLayoutFileLine[i] << std::endl;
+    std::string consoleLayoutFileLine;
+    std::getline(consoleLayoutFile,consoleLayoutFileLine,'\0');
+    placeString(consoleLayoutFileLine, 1, 1, 33, 42);
 
     placeString(ms.pclist(), 2, 4, 71, 6);
     placeString(ms.act("home"), 2, 20, 71, 18);
