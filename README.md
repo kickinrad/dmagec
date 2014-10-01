@@ -15,7 +15,7 @@ A C++ console application for managing a tabletop role-playing game.
         * `editchar`
 
 * implement more database tables
-    * `CHARACTERSINSCENE(SCENE_ID,CHAR_ID)`
+    * `CHARACTERSINSCENE(SCENE_ID,CHAR_ID)` all characters in given scene, including PC's
     * `DAMAGEINSCENE(SCENE_ID,SRC_ID,TAR_ID)` doing combat per scene is the best way, I think
     * `CHARACTERINVENTORY(CHAR_ID,ITEM_NAME)` maybe should have seperate table for all items? more stats available!
 
@@ -24,6 +24,14 @@ A C++ console application for managing a tabletop role-playing game.
     * `remove <id> <item>`
     * `damage <int> <src_id> <tar_id>`  defaults as null
     * `heal <int> <src_id> <tar_id>`  defaults as null
+
+* append some columns to existing tables for more info
+    * `CHARACTERS(BIO,INIT_MOD)`
+    * `SCENES(INFO)`
+
+* low priority console functions
+    * `rollinit` roll initiative for all characters in scene
+    * `advance` advance forward initiative
 
 * when I have time
     * fix console input to take strings between quotation marks
