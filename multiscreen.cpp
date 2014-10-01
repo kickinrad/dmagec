@@ -63,7 +63,7 @@ std::string multiscreen::pclist()
             for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
             out += chars[i][0];
             for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
-            out += chars[i][3] + '/' + chars[i][4];
+            out += chars[i][3] + '/' + chars[i][4] + '\n';
         }
     }
     return out;
@@ -81,7 +81,7 @@ std::string multiscreen::fromFile(std::string in)
 }
 std::string multiscreen::charinfo(std::string id)
 {
-    std::string **chars, out = "*Multiscreen Interface~ `<Character Info>~ \n  \n";
+    std::string **chars, out = "*Multiscreen Interface~ `<Character Info>~\n  \n";
     int numChars = getChars(chars);
     for (int i=0; i<numChars; i++)
     {
@@ -136,10 +136,6 @@ std::string multiscreen::charlist()
     std::string **chars, out = "*Multiscreen Interface~ `<Character List>~\n      \n*Character~                   *Real Name~           *ID~     *XP~      *HP~\n\n"; //spaces a workaround. fix later
     int numChars = getChars(chars);
     
-    /*for (int i=0; i<numChars; i++)
-    {
-        out += chars[i][0] + "     " + chars[i][1] + "     " + chars[i][2] + "     " + chars[i][3] + "     " + chars[i][4] + "     " + chars[i][5] + '\n';
-    }*/
     for (int i=0; i<numChars; i++)
     {
         if (chars[i][2] != "") //PC
@@ -160,7 +156,7 @@ std::string multiscreen::charlist()
             out += chars[i][0];
             for (int w=0; w<15-chars[i][0].length(); w++) out += ' ';
         }
-        out += chars[i][3] + '/' + chars[i][4] + " \n";
+        out += chars[i][3] + '/' + chars[i][4] + '\n';
     }
     return out;
 }
@@ -251,6 +247,7 @@ void convertString(std::string& input)
 
 int nf_len(std::string input)
 {
-    for (int i=0; i<input.length(); i++) if (input[i] == '*' || input[i] == '~' || input[i] == '`' || input[i] == '+' || input[i] == '^') input.erase(i--,1);
+    //13 is the return carriage character, it shows up before newline characters in files. can safely remove that.
+    for (int i=0; i<input.length(); i++) if (input[i] == '*' || input[i] == '~' || input[i] == '`' || input[i] == '+' || input[i] == '^' || input[i] == 13) input.erase(i--,1);
     return input.length();
 }

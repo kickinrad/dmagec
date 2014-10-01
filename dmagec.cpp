@@ -8,29 +8,29 @@
 
 void alert(std::string str) //place given string into alert window and clear command window
 {
-    convertString(str);
-    str.resize(71,' ');
+    convertString(str); //convert string, changing fancy characters into ansi escape sequences
+    str.resize(71,' '); //resize string, filling any extra space with whitespace to clear window
     std::cout << "\033[39;2H" << str << "\033[41;12H                                                                                       \033[41;12H";
 }
 
 void placeString(std::string in, int x, int y, int w, int h) //place given string at given coordinates, limiting to given width and height
 {
-    std::stringstream stream;
-    stream.str(in);
+    std::stringstream stream; //stringstream for parsing the string line by line
+    stream.str(in); //intialize stream with string
     for (int row=0; row<h; row++)
     {
-        if (std::getline(stream, in,'\n') && in[0]!=13) //13 == carriage return
+        if (std::getline(stream, in,'\n'))
         {
-            int len = nf_len(in);
-            convertString(in);
-            std::cout << "\033[" << y+row << ';' << x << 'H' << in;
-            std::cout << "\033[" << y+row << ";" << x+len-1 << 'H';
-            for(int ws=0; ws<w-len; ws++) std::cout << ' '; //bugged
+            int len = nf_len(in); //store the "no format" length in a variable before we convert it
+            convertString(in); //convert it, changing fancy characters into ansi escape sequences
+            std::cout << "\033[" << y+row << ';' << x << 'H' << in; //place the line itself
+            std::cout << "\033[" << y+row << ";" << x+len << 'H'; //move cursor to the end of the line
+            for(int ws=0; ws<w-len; ws++) std::cout << ' '; //fill the rest of the line with whitespace
         }
-        else
+        else //no lines left.. fill the rest with whitespace
         {
-            std::cout << "\033[" << y+row << ";" << x << 'H';
-            for (int ws=0; ws<w; ws++) std::cout << ' ';
+            std::cout << "\033[" << y+row << ";" << x << 'H'; //move cursor to beginning of line
+            for (int ws=0; ws<w; ws++) std::cout << ' '; //whitespace to end
         }
     }
 }
@@ -43,15 +43,16 @@ int main()
     multiscreen ms(db);
 
     //**************************INITIALIZE CONSOLE VIEWPORT**************************
+    std::cout << "\033[2J"; //clear out console
     std::ifstream consoleLayoutFile("consoleLayout.formatted");
     std::string consoleLayoutFileLine;
     std::getline(consoleLayoutFile,consoleLayoutFileLine,'\0');
-    placeString(consoleLayoutFileLine, 1, 1, 33, 42);
+    placeString(consoleLayoutFileLine, 1, 1, 33, 42); //place initial console layout
 
-    placeString(ms.pclist(), 2, 4, 71, 6);
-    placeString(ms.act("home"), 2, 20, 71, 18);
-    std::string defaultScene = "1";
-    placeString(ms.act("setscene",&defaultScene), 3, 11, 70, 1);
+    placeString(ms.pclist(), 2, 4, 71, 6); //place list of PCs
+    placeString(ms.act("home"), 2, 20, 71, 18); //place default (home) screen
+    std::string defaultScene = "1"; //set default scene
+    placeString(ms.act("setscene",&defaultScene), 3, 11, 70, 1); //place default scene
 
     //**************************COMMAND LINE LOOP**************************
     while (true)
@@ -70,8 +71,9 @@ int main()
         
         if (input[1]=="q" || input[1]=="quit")
         {
-            std::cout << "\033[2J\033[1;1H\033[0mSucessfully saved and exited." << std::endl;
-            sqlite3_close(db);
+            alert("`Exited without errors. cya~");
+            std::cout << "\033[43;0H" << std::endl; //place cursor below console before returning
+            sqlite3_close(db); //close database
             return 0;
         }
         else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist" || input[1]=="scenelist") placeString(ms.act(input[1]), 2, 20, 71, 18);
@@ -82,7 +84,7 @@ int main()
         else
         {
             alert("^Command was not recognized! Please try again.~");
-            continue;
+            continue; //loop around, so we don't hit that alert below that's used by above database::act() statements
         }
 
         alert(alert_string);
