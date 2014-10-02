@@ -25,6 +25,11 @@ private:
     int getChars(std::string**&); //returns number of characters
     void editchar(std::string*);
 
+    void give(std::string*);
+    void remove(std::string);
+
+    std::string damage(std::string*);
+
     int currentScene;
     int getScenes(std::string**&); //returns number of scenes
     std::string setscene(std::string);

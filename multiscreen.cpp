@@ -25,6 +25,10 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
     else if (in=="sceneinfo") c = 7;
     else if (in=="editchar") c = 8;
     else if (in=="editscene") c = 9;
+    else if (in=="give") c = 10;
+    else if (in=="remove") c = 11;
+    else if (in=="heal") c = 12;
+    else if (in=="damage") c = 13;
 
     switch(c)
     {
@@ -62,6 +66,21 @@ std::string multiscreen::act(std::string in, std::string* argv, std::string* ale
         case 9:
             editscene(argv);
             return fromFile("home");
+            break;
+        case 10:
+            give(argv);
+            return fromFile("home");
+            break;
+        case 11:
+            remove(argv[0]);
+            return fromFile("home");
+            break;
+        case 12:
+            argv[0].insert(0,"-");
+            return damage(argv);
+            break;
+        case 13:
+            return damage(argv);
             break;
     }
 }
@@ -168,7 +187,37 @@ std::string multiscreen::charinfo(std::string id)
                 out += "Portrayed by:      `" + chars[i][2] + "~\n";
                 out += "Experience Points: `" + chars[i][5] + "~\n";
             }
-            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~";
+            out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~\n\nInventory:\n\n";
+
+            //get number of items in inventory
+            std::string q = "SELECT COUNT(*) FROM CHARACTERINVENTORY WHERE CHAR_ID=" + id + ";";
+            const char *query = q.c_str();
+            sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+            sqlite3_step(stmt);
+            int itemcount = sqlite3_column_int(stmt,0);
+
+            //get list of item ids in inventory
+            q = "SELECT * FROM CHARACTERINVENTORY WHERE CHAR_ID=" + id + ";";
+            const char *query2 = q.c_str();
+            sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+            std::string items[itemcount];
+            for(i=0; i<itemcount; i++)
+            {
+                sqlite3_step(stmt);
+                items[i] = std::string(reinterpret_cast< const char* >(sqlite3_column_text(stmt,2)));
+            }
+
+            //lookup each item
+            
+            for (int i=0; i<itemcount; i++)
+            {
+                q = "SELECT * FROM ITEMS WHERE ID=" + items[i] + ";";
+                const char *query3 = q.c_str();
+                sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
+                sqlite3_step(stmt);
+                out += std::string(reinterpret_cast< const char* >(sqlite3_column_text(stmt,1))) + "    " + std::string(reinterpret_cast< const char* >(sqlite3_column_text(stmt,2))) + "\n";
+            }
+
             return out;
         }
     }
@@ -187,11 +236,13 @@ std::string multiscreen::pclist()
             for (int w=0; w<28-chars[i][1].length(); w++) out += ' ';
             out += chars[i][2];
             for (int w=0; w<20-chars[i][2].length(); w++) out += ' ';
-            out += chars[i][3];
-            for (int w=0; w<7-chars[i][3].length(); w++) out += ' ';
             out += chars[i][0];
-            for (int w=0; w<8-chars[i][0].length(); w++) out += ' ';
-            out += chars[i][3] + '/' + chars[i][4] + '\n';
+            for (int w=0; w<7-chars[i][0].length(); w++) out += ' ';
+            out += chars[i][5];
+            for (int w=0; w<8-chars[i][5].length(); w++) out += ' ';
+            if (chars[i][3]=="0") out += '^' + chars[i][3] + '~';
+            else out += chars[i][3];
+            out += '/' + chars[i][4] + '\n';
         }
     }
     return out;
@@ -202,6 +253,98 @@ void multiscreen::editchar(std::string* argv)
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
+}
+
+//**************************ITEM FUNCTIONS**************************
+void multiscreen::give(std::string* argv)
+{ //argv[0] = character id; argv[1] = item name, argv[2] = item description
+
+    //figure out what our item's ID should be..
+    const char *query = "SELECT Count(*) FROM ITEMS;";
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    sqlite3_step(stmt);
+    int id = sqlite3_column_int(stmt,0) + 1;
+
+    //create new item with that id
+    std::string q = "INSERT INTO ITEMS (ID, NAME, DESC) VALUES(" + std::to_string(id) + ",'" + argv[1] + "','" + argv[2] + "');";
+    const char *query2 = q.c_str();
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+    sqlite3_step(stmt);
+
+    //figure out what our key's ID in CHARACTERINVENTORY should be..
+    const char *query3 = "SELECT Count(*) FROM CHARACTERINVENTORY;";
+    sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
+    sqlite3_step(stmt);
+    int id_2 = sqlite3_column_int(stmt,0) + 1;
+
+    //add new item to player inventory
+    q = "INSERT INTO CHARACTERINVENTORY (KEY, CHAR_ID, ITEM_ID) VALUES(" + std::to_string(id_2) + "," + argv[0] + "," + std::to_string(id) + ");";
+    const char *query4 = q.c_str();
+    sqlite3_prepare(db, query4, strlen(query4), &stmt, &pz);
+    sqlite3_step(stmt);
+    id_2 = sqlite3_column_int(stmt,0) + 1;
+}
+void multiscreen::remove(std::string id)
+{
+    //delete item from ITEMS
+    std::string q = "DELETE FROM ITEMS WHERE ID=" + id;
+    const char *query = q.c_str();
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    sqlite3_step(stmt);
+
+    //delete item from CHARACTERINVENTORY
+    q = "DELETE FROM CHARACTERINVENTORY WHERE ITEM_ID=" + id;
+    const char *query2 = q.c_str();
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+    sqlite3_step(stmt);
+}
+
+//**************************COMBAT FUNCTIONS**************************
+std::string multiscreen::damage(std::string* argv)
+{ //argv[0] = amount; argv[1] = tar<id>; argv[2] = src<id>; argv[3] = scene id
+
+    //figure out key
+    const char* query = "SELECT COUNT(*) FROM DAMAGEINSCENE";
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    sqlite3_step(stmt);
+    int key = sqlite3_column_int(stmt,0) + 1;
+
+    //get current target HP
+    //CHARACTERS(ID,NAME,REALNAME,CURHP,TOTALHP,XP)
+    std::string q = "SELECT * FROM CHARACTERS WHERE ID =" + argv[1];
+    const char* query3 = q.c_str();
+    sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
+    sqlite3_step(stmt);
+    int curhp = sqlite3_column_int(stmt,3);
+    int totalhp = sqlite3_column_int(stmt,4);
+
+    if (curhp-stoi(argv[0]) > totalhp)
+    {
+        //*alert = "Healed for too much, instead set HP to max!";
+        *alert = "^Trying to heal by " + argv[0].substr(1,argv[0].length()-1) + " but that puts you over " + std::to_string(totalhp) + "!~";
+        argv[0] = std::to_string((totalhp-curhp)*-1);
+    }
+    else if (curhp-stoi(argv[0]) < 0)
+    {
+        //*alert = "Damaged for too much, set HP to zero.";
+        *alert = "^Trying to damage for " + argv[0] + " but that you under zero.~";
+        argv[0] = std::to_string(curhp);
+    }
+
+    //insert into DAMAGEINSCENE(KEY,SCENE_ID,SRC_ID,TAR_ID,VAL)
+    q = "INSERT INTO DAMAGEINSCENE (KEY, SCENE_ID, SRC_ID, TAR_ID, VAL) VALUES(" + std::to_string(key) + ",'" + argv[3] + "','" + argv[2] + "','" + argv[1] + "','" + argv[0] + "');";
+    const char* query2 = q.c_str();
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+    sqlite3_step(stmt);
+
+    //update character HP
+    //CHARACTERS(ID,NAME,REALNAME,CURHP,TOTALHP,XP)
+    q = "UPDATE CHARACTERS SET CURHP = '" + std::to_string(curhp-stoi(argv[0])) + "' WHERE ID = '" + argv[1] + "';";
+    const char* query4 = q.c_str();
+    sqlite3_prepare(db, query4, strlen(query4), &stmt, &pz);
+    sqlite3_step(stmt);
+
+    return pclist();
 }
 
 //**************************SCENE FUNCTIONS**************************
@@ -290,7 +433,6 @@ void convertString(std::string& input)
         if (input[i] == '*') input.replace(i,1,"\033[4m\033[33m"); //orange text w/ underline
         if (input[i] == '~') input.replace(i,1,"\033[39m\033[24m"); //default text
         if (input[i] == '`') input.replace(i,1,"\033[37m"); //white text
-        if (input[i] == '+') input.replace(i,1,"\033[41m"); //red highlight
         if (input[i] == '^') input.replace(i,1,"\033[31m\033[52m"); //red text
     }
 }

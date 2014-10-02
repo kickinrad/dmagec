@@ -51,8 +51,8 @@ int main()
 
     placeString(ms.pclist(), 2, 4, 71, 6); //place list of PCs
     placeString(ms.act("home"), 2, 20, 71, 18); //place default (home) screen
-    std::string defaultScene = "1"; //set default scene
-    placeString(ms.act("setscene",&defaultScene), 3, 11, 70, 1); //place default scene
+    std::string currentScene = "1"; //set default scene
+    placeString(ms.act("setscene",&currentScene), 3, 11, 70, 1); //place default scene
 
     //**************************COMMAND LINE LOOP**************************
     while (true)
@@ -62,6 +62,8 @@ int main()
 
         std::string alert_string = ""; //for alerts returned from multiscreen::act()
         std::getline(std::cin,input[0]); //get input from user, place raw input (terminated by newline) into input[0]
+
+        input[5] = currentScene; //throw the current scene into this array for input into multiscreen::act();
 
         std::stringstream stream; //stringstream for parsing user input
         stream.str(input[0]); //intialize stream with raw user input
@@ -79,8 +81,13 @@ int main()
         else if (input[1]=="home" || input[1]=="help" || input[1]== "charlist" || input[1]=="scenelist") placeString(ms.act(input[1]), 2, 20, 71, 18);
         else if (input[1]=="charinfo" || input[1]=="sceneinfo") placeString(ms.act(input[1],&input[2],&alert_string), 2, 20, 71, 18);
         else if (input[1]=="addpc" || input[1]=="addnpc") ms.act(input[1],input+2);
-        else if (input[1]=="setscene") placeString(ms.act(input[1],&input[2],&alert_string), 3, 11, 70, 1);
-        else if (input[1]=="editchar" || input[1]=="editscene") ms.act(input[1],&input[2]);
+        else if (input[1]=="editchar" || input[1]=="editscene" || input[1]=="give" || input[1]=="remove") ms.act(input[1],&input[2]);
+        else if (input[1]=="damage" || input[1] == "heal") placeString(ms.act(input[1],&input[2],&alert_string), 2, 4, 71, 6);
+        else if (input[1]=="setscene")
+        {
+            currentScene = input[2];
+            placeString(ms.act(input[1],&input[2],&alert_string), 3, 11, 70, 1);
+        }
         else
         {
             alert("^Command was not recognized! Please try again.~");

@@ -9,5 +9,5 @@ a different screen, enter one of the following commands:
  `addnpc~ <name> <hp>               `addpc~ <name> <realname> <hp>
  `setscene~ <id>                    `addscene~ <name>
  `give~ <id> <name>                 `remove~ <id> <item>
- `damage~ <int> <src_id> <tar_id>   `heal~ <int> <src_id> <tar_id> 
+ `damage~ <int> <tar_id> <src_id>   `heal~ <int> <tar_id> <src_id> 
  `editchar~ <id> <column> <update>  `editscene~ <id> <column> <update>
