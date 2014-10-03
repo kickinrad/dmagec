@@ -99,7 +99,7 @@ std::string multiscreen::fromFile(std::string in)
 //**************************CHARACTER FUNCTIONS**************************
 int multiscreen::getChars(std::string**& chars)
 {
-    const char *query = "SELECT Count(*) FROM CHARACTERS;";
+    const char *query = "select Count(*) from Characters;";
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     int count = sqlite3_step(stmt);
     if (!count) return 0;
@@ -107,7 +107,7 @@ int multiscreen::getChars(std::string**& chars)
 
     chars = new std::string*[count];
 
-    const char *query2 = "SELECT * FROM CHARACTERS ORDER BY ID ASC;";
+    const char *query2 = "select * from Characters order by id asc;";
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
 
     for (int i=0; i<count; i++)
@@ -163,11 +163,11 @@ void multiscreen::addchar(bool pc, std::string* argv)
     int id = std::stoi(chars[numChars-1][0])+1;
     if (pc)
     {
-        q = "INSERT INTO CHARACTERS (ID,NAME,REALNAME,CURHP,TOTALHP,XP) VALUES(" + std::to_string(id) + ",'" + argv[0] + "','" + argv[1] + "'," + argv[2] + "," + argv[2] + ",0);";
+        q = "insert into Characters(ID,name,realName,curHP,totalHP,xp) values(" + std::to_string(id) + ",'" + argv[0] + "','" + argv[1] + "'," + argv[2] + "," + argv[2] + ",0);";
     }
     else
     {
-        q = "INSERT INTO CHARACTERS (ID,NAME,CURHP,TOTALHP) VALUES(" + std::to_string(id) + ",'" + argv[0] + "'," + argv[1] + "," + argv[1] + ");";
+        q = "insert into characters (ID,name,curHP,totalHP) values(" + std::to_string(id) + ",'" + argv[0] + "'," + argv[1] + "," + argv[1] + ");";
     }
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
@@ -190,14 +190,14 @@ std::string multiscreen::charinfo(std::string id)
             out += "Hit Points:        `" + chars[i][3] + "~/`" + chars[i][4] + "~\n\nInventory:\n\n";
 
             //get number of items in inventory
-            std::string q = "SELECT COUNT(*) FROM CHARACTERINVENTORY WHERE CHAR_ID=" + id + ";";
+            std::string q = "select Count(*) from CharacterInventory where char_id=" + id + ";";
             const char *query = q.c_str();
             sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
             sqlite3_step(stmt);
             int itemcount = sqlite3_column_int(stmt,0);
 
             //get list of item ids in inventory
-            q = "SELECT * FROM CHARACTERINVENTORY WHERE CHAR_ID=" + id + ";";
+            q = "select * from CharacterInventory where char_id=" + id + ";";
             const char *query2 = q.c_str();
             sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
             std::string items[itemcount];
@@ -211,7 +211,7 @@ std::string multiscreen::charinfo(std::string id)
             
             for (int i=0; i<itemcount; i++)
             {
-                q = "SELECT * FROM ITEMS WHERE ID=" + items[i] + ";";
+                q = "select * from Items where ID=" + items[i] + ";";
                 const char *query3 = q.c_str();
                 sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
                 sqlite3_step(stmt);
@@ -249,7 +249,7 @@ std::string multiscreen::pclist()
 }
 void multiscreen::editchar(std::string* argv)
 {
-    std::string q = "UPDATE CHARACTERS SET " + argv[1] + " = " + '\'' + argv[2] + "\' WHERE ID = " + argv[0] + ';';
+    std::string q = "update characters set " + argv[1] + " = " + '\'' + argv[2] + "\' where id = " + argv[0] + ';';
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
@@ -260,25 +260,25 @@ void multiscreen::give(std::string* argv)
 { //argv[0] = character id; argv[1] = item name, argv[2] = item description
 
     //figure out what our item's ID should be..
-    const char *query = "SELECT Count(*) FROM ITEMS;";
+    const char *query = "select Count(*) from items;";
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
     int id = sqlite3_column_int(stmt,0) + 1;
 
     //create new item with that id
-    std::string q = "INSERT INTO ITEMS (ID, NAME, DESC) VALUES(" + std::to_string(id) + ",'" + argv[1] + "','" + argv[2] + "');";
+    std::string q = "insert into Items (ID, name, description) values(" + std::to_string(id) + ",'" + argv[1] + "','" + argv[2] + "');";
     const char *query2 = q.c_str();
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
     sqlite3_step(stmt);
 
     //figure out what our key's ID in CHARACTERINVENTORY should be..
-    const char *query3 = "SELECT Count(*) FROM CHARACTERINVENTORY;";
+    const char *query3 = "select Count(*) from CharacterInventory;";
     sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
     sqlite3_step(stmt);
     int id_2 = sqlite3_column_int(stmt,0) + 1;
 
     //add new item to player inventory
-    q = "INSERT INTO CHARACTERINVENTORY (KEY, CHAR_ID, ITEM_ID) VALUES(" + std::to_string(id_2) + "," + argv[0] + "," + std::to_string(id) + ");";
+    q = "insert into CharacterInventory (Key, char_id, item_id) values(" + std::to_string(id_2) + "," + argv[0] + "," + std::to_string(id) + ");";
     const char *query4 = q.c_str();
     sqlite3_prepare(db, query4, strlen(query4), &stmt, &pz);
     sqlite3_step(stmt);
@@ -287,13 +287,13 @@ void multiscreen::give(std::string* argv)
 void multiscreen::remove(std::string id)
 {
     //delete item from ITEMS
-    std::string q = "DELETE FROM ITEMS WHERE ID=" + id;
+    std::string q = "delete from Items where id=" + id;
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
 
     //delete item from CHARACTERINVENTORY
-    q = "DELETE FROM CHARACTERINVENTORY WHERE ITEM_ID=" + id;
+    q = "delete from CharacterInventory where item_id=" + id;
     const char *query2 = q.c_str();
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
     sqlite3_step(stmt);
@@ -304,14 +304,14 @@ std::string multiscreen::damage(std::string* argv)
 { //argv[0] = amount; argv[1] = tar<id>; argv[2] = src<id>; argv[3] = scene id
 
     //figure out key
-    const char* query = "SELECT COUNT(*) FROM DAMAGEINSCENE";
+    const char* query = "select Count(*) from DamageInScene";
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
     int key = sqlite3_column_int(stmt,0) + 1;
 
     //get current target HP
     //CHARACTERS(ID,NAME,REALNAME,CURHP,TOTALHP,XP)
-    std::string q = "SELECT * FROM CHARACTERS WHERE ID =" + argv[1];
+    std::string q = "select * from Characters where ID =" + argv[1];
     const char* query3 = q.c_str();
     sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
     sqlite3_step(stmt);
@@ -332,14 +332,14 @@ std::string multiscreen::damage(std::string* argv)
     }
 
     //insert into DAMAGEINSCENE(KEY,SCENE_ID,SRC_ID,TAR_ID,VAL)
-    q = "INSERT INTO DAMAGEINSCENE (KEY, SCENE_ID, SRC_ID, TAR_ID, VAL) VALUES(" + std::to_string(key) + ",'" + argv[3] + "','" + argv[2] + "','" + argv[1] + "','" + argv[0] + "');";
+    q = "insert into DamageInScene (key, scene_id, val, tar_id, src_id) values(" + std::to_string(key) + ",'" + argv[3] + "','" + argv[0] + "','" + argv[1] + "','" + argv[2] + "');";
     const char* query2 = q.c_str();
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
     sqlite3_step(stmt);
 
     //update character HP
     //CHARACTERS(ID,NAME,REALNAME,CURHP,TOTALHP,XP)
-    q = "UPDATE CHARACTERS SET CURHP = '" + std::to_string(curhp-stoi(argv[0])) + "' WHERE ID = '" + argv[1] + "';";
+    q = "update Characters set curHP = '" + std::to_string(curhp-stoi(argv[0])) + "' where id = '" + argv[1] + "';";
     const char* query4 = q.c_str();
     sqlite3_prepare(db, query4, strlen(query4), &stmt, &pz);
     sqlite3_step(stmt);
@@ -350,7 +350,7 @@ std::string multiscreen::damage(std::string* argv)
 //**************************SCENE FUNCTIONS**************************
 int multiscreen::getScenes(std::string**& chars)
 {
-    const char *query = "SELECT Count(*) FROM SCENES;";
+    const char *query = "select Count(*) from Scenes;";
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     int count = sqlite3_step(stmt);
     if (!count) return 0;
@@ -358,7 +358,7 @@ int multiscreen::getScenes(std::string**& chars)
 
     chars = new std::string*[count];
 
-    const char *query2 = "SELECT * FROM SCENES ORDER BY ID ASC;";
+    const char *query2 = "select * from Scenes order by ID asc;";
     sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
 
     for (int i=0; i<count; i++)
@@ -419,7 +419,7 @@ std::string multiscreen::sceneinfo(std::string id)
 }
 void multiscreen::editscene(std::string* argv)
 {
-    std::string q = "UPDATE SCENES SET " + argv[1] + " = " + '\'' + argv[2] + "\' WHERE ID = " + argv[0] + ';';
+    std::string q = "update Scenes set " + argv[1] + " = " + '\'' + argv[2] + "\' where ID = " + argv[0] + ';';
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);

@@ -32,7 +32,7 @@ A C++ console application for managing a tabletop role-playing game.
 
 * ~~change charinfo to display inventory~~
 
-* append some columns to existing tables for more info
+* ~~append some columns to existing tables for more info~~
     * `CHARACTERS(BIO,INIT_MOD)`
     * `SCENES(DESC)`
 
@@ -43,4 +43,5 @@ A C++ console application for managing a tabletop role-playing game.
 * when I have time
     * fix console input to take strings between quotation marks
     * add safeguards for sql queries
-    * change sql tables to more sensible case
+    * ~~change sql tables to more sensible case~~
+    * fix multiscreen:act() to be better

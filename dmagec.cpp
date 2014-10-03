@@ -52,7 +52,7 @@ int main()
     placeString(ms.pclist(), 2, 4, 71, 6); //place list of PCs
     placeString(ms.act("home"), 2, 20, 71, 18); //place default (home) screen
     std::string currentScene = "1"; //set default scene
-    placeString(ms.act("setscene",&currentScene), 3, 11, 70, 1); //place default scene
+    //placeString(ms.act("setscene",&currentScene), 3, 11, 70, 1); //place default scene
 
     //**************************COMMAND LINE LOOP**************************
     while (true)
