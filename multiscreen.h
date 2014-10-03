@@ -21,7 +21,7 @@ private:
     std::string fromFile(std::string);
     std::string charinfo(std::string);
     std::string charlist();
-    void addchar(bool,std::string*);
+    std::string addchar(bool,std::string*);
     int getChars(std::string**&); //returns number of characters
     void editchar(std::string*);
 
@@ -29,6 +29,8 @@ private:
     void remove(std::string);
 
     std::string damage(std::string*);
+    std::string rollInit();
+    std::string advance();
 
     int currentScene;
     int getScenes(std::string**&); //returns number of scenes
@@ -36,6 +38,7 @@ private:
     std::string scenelist();
     std::string sceneinfo(std::string);
     void editscene(std::string*);
+    std::string sceneNPCs(std::string);
 };
 
 #endif

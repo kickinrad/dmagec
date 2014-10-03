@@ -12,77 +12,58 @@ multiscreen::multiscreen(sqlite3* given_db)
 //**************************GENERAL MULTISCREEN FUNCTIONS**************************
 std::string multiscreen::act(std::string in, std::string* argv, std::string* alert_in)
 {
-    int c;
     alert = alert_in;
 
-    if (in=="home" || in == "help") c = 0;
-    else if (in=="charinfo") c = 1;
-    else if (in=="charlist") c = 2;
-    else if (in=="addpc") c = 3;
-    else if (in=="addnpc") c = 4;
-    else if (in=="scenelist") c = 5;
-    else if (in=="setscene") c = 6;
-    else if (in=="sceneinfo") c = 7;
-    else if (in=="editchar") c = 8;
-    else if (in=="editscene") c = 9;
-    else if (in=="give") c = 10;
-    else if (in=="remove") c = 11;
-    else if (in=="heal") c = 12;
-    else if (in=="damage") c = 13;
-
-    switch(c)
+    if (in=="home") return fromFile(in);
+    else if (in == "help") return fromFile(in);
+    else if (in=="charinfo") return charinfo(argv[0]);
+    else if (in=="charlist") return charlist();
+    else if (in=="damage") return damage(argv);
+    else if (in=="scenelist") return scenelist();
+    else if (in=="setscene") return setscene(*argv);
+    else if (in=="sceneNPCs") return sceneNPCs(*argv);
+    else if (in=="rollInit") return rollInit();
+    else if (in=="advance") return advance();
+    else if (in=="addpc")
     {
-        case 0: //home, help, etc
-            return fromFile(in);
-            break;
-        case 1: //charinfo
-            return charinfo(argv[0]);
-            break;
-        case 2: //charlist
-            return charlist();
-            break;
-        case 3: //addpc
-            addchar(true,argv);
-            return fromFile("home");
-            break;
-        case 4: //addnpc
-            addchar(false, argv);
-            return fromFile("home");
-            break;
-        case 5:
-            return scenelist();
-            break;
-        case 6:
-            return setscene(argv[0]);
-            break;
-        case 7:
-            sceneinfo(argv[0]);
-            return fromFile("home");
-            break;
-        case 8:
-            editchar(argv);
-            return fromFile("home");
-            break;
-        case 9:
-            editscene(argv);
-            return fromFile("home");
-            break;
-        case 10:
-            give(argv);
-            return fromFile("home");
-            break;
-        case 11:
-            remove(argv[0]);
-            return fromFile("home");
-            break;
-        case 12:
-            argv[0].insert(0,"-");
-            return damage(argv);
-            break;
-        case 13:
-            return damage(argv);
-            break;
+        addchar(true,argv);
+        return fromFile("home");
     }
+    else if (in=="addnpc")
+    {
+        return addchar(false, argv);
+    }
+    else if (in=="sceneinfo")
+    {
+        sceneinfo(argv[0]);
+        return fromFile("home");
+    }
+    else if (in=="editchar")
+    {
+        editchar(argv);
+        return fromFile("home");
+    }
+    else if (in=="editscene")
+    {
+        editscene(argv);
+        return fromFile("home");
+    }
+    else if (in=="give")
+    {
+        give(argv);
+        return fromFile("home");
+    }
+    else if (in=="remove")
+    {
+        remove(argv[0]);
+        return fromFile("home");
+    }
+    else if (in=="heal")
+    {
+        argv[0].insert(0,"-");
+        return damage(argv);
+    }
+
 }
 std::string multiscreen::fromFile(std::string in)
 {
@@ -156,7 +137,7 @@ std::string multiscreen::charlist()
     }
     return out;
 }
-void multiscreen::addchar(bool pc, std::string* argv)
+std::string multiscreen::addchar(bool pc, std::string* argv)
 {
     std::string **chars, q;
     int numChars = getChars(chars);
@@ -167,11 +148,25 @@ void multiscreen::addchar(bool pc, std::string* argv)
     }
     else
     {
-        q = "insert into characters (ID,name,curHP,totalHP) values(" + std::to_string(id) + ",'" + argv[0] + "'," + argv[1] + "," + argv[1] + ");";
+        q = "insert into Characters (ID,name,curHP,totalHP) values(" + std::to_string(id) + ",'" + argv[0] + "'," + argv[1] + "," + argv[1] + ");";
     }
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
+
+    q = "select Count(*) from CharactersInScene;";
+    const char *query2 = q.c_str();
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+    sqlite3_step(stmt);
+    int scene_id = sqlite3_column_int(stmt,0) + 1;
+
+    q = "insert into CharactersInScene (Key,scene_id,char_id) Values('" + std::to_string(scene_id) + "'," + argv[3] + "," + std::to_string(id) + ");";
+    const char *query3 = q.c_str();
+    sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
+    sqlite3_step(stmt);
+
+    if (!pc) return sceneNPCs(argv[3]);
+    else return "doesn't matter"; //probably figure something better out for this
 }
 std::string multiscreen::charinfo(std::string id)
 {
@@ -346,7 +341,16 @@ std::string multiscreen::damage(std::string* argv)
 
     return pclist();
 }
-
+std::string multiscreen::rollInit()
+{
+    std::string out;
+    return out;
+}
+std::string multiscreen::advance()
+{
+    std::string out;
+    return out;
+}
 //**************************SCENE FUNCTIONS**************************
 int multiscreen::getScenes(std::string**& chars)
 {
@@ -423,6 +427,53 @@ void multiscreen::editscene(std::string* argv)
     const char *query = q.c_str();
     sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
     sqlite3_step(stmt);
+}
+std::string multiscreen::sceneNPCs(std::string scene)
+{
+    std::string out = "*NPCs~                   *ID~   *HP~      *NPCs~                   *ID~   *HP~\n";
+    std::string q = "select Count(*) from CharactersInScene where scene_id = " + scene;
+
+    const char *query = q.c_str();
+
+    sqlite3_prepare(db, query, strlen(query), &stmt, &pz);
+    int count = sqlite3_step(stmt);
+    if (!count) return "No NPCs in scene.";
+    count = sqlite3_column_int(stmt,0);
+
+    q = "select * from CharactersInScene where scene_id = " + scene + ";";
+    const char *query2 = q.c_str();
+
+    sqlite3_prepare(db, query2, strlen(query2), &stmt, &pz);
+    std::string char_ids[count];
+    for (int i=0; i<count; ++i)
+    {
+        sqlite3_step(stmt);
+        char_ids[i] = std::to_string(sqlite3_column_int(stmt,2));
+    }
+    for (int i=0; i<count && count<=14; ++i)
+    {
+        q = "select * from Characters where ID = " + char_ids[i];
+        const char *query3 = q.c_str();
+        sqlite3_prepare(db, query3, strlen(query3), &stmt, &pz);
+        sqlite3_step(stmt);
+
+        if (count > 6 && (i%2) && i<(count-6)*2) out += " ";
+        else if (i==0);
+        else out += "\n";
+        
+        std::string resize = std::string(reinterpret_cast< const char* >(sqlite3_column_text(stmt,1)));
+        resize.resize(23,' ');
+        out += resize;
+        resize = std::to_string(sqlite3_column_int(stmt,0)); //id
+        resize.resize(5,' ');
+        out += resize;
+        resize = std::to_string(sqlite3_column_int(stmt,3)) + '/' + std::to_string(sqlite3_column_int(stmt,4));
+        resize.resize(7,' ');
+        out += resize;
+    }
+
+
+    return out;
 }
 
 //**************************STRING HELPER FUNCTIONS**************************
